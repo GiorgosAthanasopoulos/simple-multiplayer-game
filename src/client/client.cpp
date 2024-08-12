@@ -20,7 +20,7 @@ Client::Client() {
     exit(EXIT_FAILURE);
   }
 
-  client = enet_host_create(NULL, 1, 2, 57600 / 8, 14400 / 8);
+  client = enet_host_create(NULL, 1, 3, 57600 / 8, 14400 / 8);
   if (client == NULL) {
     std::cerr << "[ERROR]: failed to create client\n";
     exit(EXIT_FAILURE);
@@ -29,7 +29,7 @@ Client::Client() {
   enet_address_set_host(&address, SERVER_IP);
   address.port = SERVER_PORT;
 
-  peer = enet_host_connect(client, &address, 2, 0);
+  peer = enet_host_connect(client, &address, 3, 0);
   if (peer == NULL) {
     std::cerr << "[ERROR]: failed to connect to host\n";
     exit(EXIT_FAILURE);
@@ -70,8 +70,11 @@ std::optional<Vector2> Client::Update() {
           tokens.push_back(token);
         }
 
-        return Vector2{(float)atoi(tokens[0].data()),
-                       (float)atoi(tokens[1].data())};
+        if (channel != atoi(tokens[0].data()) &&
+            strcmp(tokens[1].data(), "pos") == 0) {
+          return Vector2{(float)atoi(tokens[2].data()),
+                         (float)atoi(tokens[3].data())};
+        }
       }
       enet_packet_destroy(event.packet);
       break;
@@ -83,9 +86,12 @@ std::optional<Vector2> Client::Update() {
 }
 
 void Client::SendStr(std::string msg) {
-  const char *text = msg.data();
+  std::ostringstream ss;
+  ss << channel << ";" << msg;
+  std::string msgS = ss.str();
+  const char *text = msgS.data();
   enet_peer_send(
-      peer, channel,
+      peer, channel == 1 ? 2 : 1,
       enet_packet_create(text, strlen(text) + 1, ENET_PACKET_FLAG_RELIABLE));
 }
 

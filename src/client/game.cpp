@@ -38,7 +38,7 @@ void Game::Update() {
   camera.target = player->GetPos();
 
   std::ostringstream ss;
-  ss << player->GetPos().x << ";" << player->GetPos().y;
+  ss << "pos;" << player->GetPos().x << ";" << player->GetPos().y;
   client->SendStr(ss.str());
 }
 
@@ -51,7 +51,9 @@ void Game::Draw() {
     envItems[i].Draw();
   }
   player->Draw();
-  DrawRectangleV(otherPos, player->GetSize(), PLAYER_2_COLOR);
+  Vector2 size = player->GetSize();
+  DrawRectangleV({otherPos.x - size.x / 2, otherPos.y - size.y}, size,
+                 PLAYER_2_COLOR);
   EndMode2D();
   raylib->Draw();
 

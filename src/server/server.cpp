@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   ENetHost *server;
   ENetEvent event;
   int eventStatus;
-  int id = 0;
+  int id = 1;
   std::vector<ENetPeer *> peers;
 
   if (enet_initialize() != 0) {
@@ -38,28 +38,15 @@ int main(int argc, char **argv) {
                event.peer->address.host);
         peers.push_back(event.peer);
         enet_peer_send(event.peer, 0,
-                       enet_packet_create(id++ == 0 ? "1" : "2", 2,
+                       enet_packet_create(id == 1 ? "1" : "2", 2,
                                           ENET_PACKET_FLAG_RELIABLE));
-        if (id == 2) {
-          id = 0;
+        id++;
+        if (id == 3) {
+          id = 1;
         }
         break;
       case ENET_EVENT_TYPE_RECEIVE:
         printf("(Server) Message from client : %s\n", event.packet->data);
-        if (peers.size() < 2) {
-          break;
-        }
-        if (event.channelID == 1) {
-          enet_peer_send(peers[1], 2,
-                         enet_packet_create(event.packet->data,
-                                            strlen((char *)event.packet->data),
-                                            ENET_PACKET_FLAG_RELIABLE));
-        } else if (event.channelID == 2) {
-          enet_peer_send(peers[0], 1,
-                         enet_packet_create(event.packet->data,
-                                            strlen((char *)event.packet->data),
-                                            ENET_PACKET_FLAG_RELIABLE));
-        }
         enet_host_broadcast(server, 0, event.packet);
         break;
       case ENET_EVENT_TYPE_DISCONNECT:
